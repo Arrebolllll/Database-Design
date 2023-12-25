@@ -1,9 +1,9 @@
 <template>
   <div class="file-manager">
     <!-- 顶部按钮 -->
-    <el-button type="primary" @click="addVisible = true" round>新增<i class="el-icon-upload el-icon--right"></i></el-button>
+    <el-button type="primary" @click="addVisible = true" round>新增<i class="el-icon-plus el-icon--right"></i></el-button>
     <el-button round type="warning" @click="selectVisible = true" style="margin-left: 2%;">筛选<i
-        class="el-icon-delete el-icon--right"></i></el-button>
+        class="el-icon-search el-icon--right"></i></el-button>
     <el-button round @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
         class="el-icon-circle-close el-icon--right"></i></el-button>
     <el-button round @click="deleteRecord" type="danger" style="margin-left: 2%;">删除选定<i
@@ -74,6 +74,7 @@ import Cookies from 'js-cookie'
 export default {
   data() {
     return {
+      relationName: "sell_info",
       record: [],//表格信息
       addVisible: false, //新增记录弹出窗口
       selectVisible: false, //筛选记录弹出窗口
@@ -81,10 +82,10 @@ export default {
       newAttr2: "",
       newAttr3: "",
       newAttr4: "",
-      searchKey:"", //查询的关键字
+      searchKey: "", //查询的关键字
     }
   },
-  mounted(){
+  mounted() {
     this.fetchData();
   },
   methods: {
@@ -110,7 +111,7 @@ export default {
     submitSelect() {
       console.log('我要筛选出记录')
     },
-    fetchData(){
+    fetchData() {
       console.log('我要一进来就获取数据')
     },
     sortByName(obj1, obj2) {
@@ -121,7 +122,7 @@ export default {
     },
     handleClose(done) {
       // 控制上传窗口
-      this.$confirm('确认关闭？你的文件可能还没有上传成功。')
+      this.$confirm('确认关闭？你的操作可能还没有完成。')
         .then(_ => {
           done();
         })

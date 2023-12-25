@@ -7,16 +7,6 @@
             <i :class="`el-icon-${item.icon}`"></i>
             <span slot="title">{{ item.label }}</span>
         </el-menu-item>
-        <!-- 以下是子菜单，移除展示 -->
-        <!-- <el-submenu style="font-weight: ;" v-for="item in hasChildren" :key="item.label" :index="item.label">
-            <template slot="title">
-                <i :class="`el-icon-${item.icon}`"></i>
-                <span slot="title">{{ item.label }}</span>
-            </template>
-            <el-menu-item-group v-for="subItem in item.children" :key="subItem.path">
-                <el-menu-item @click="clickMenu(subItem)" :index="subItem.path">{{ subItem.label }}</el-menu-item>
-            </el-menu-item-group>
-        </el-submenu> -->
     </el-menu>
 </template>
 <style lang="less" scoped>
