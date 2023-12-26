@@ -129,8 +129,7 @@
       </span>
     </el-dialog>
 
-    <el-table ref="multipleTable" stripe
-      :data="selectRecord.length === 0 ? record.slice((currentPage - 1) * pageSize, currentPage * pageSize) : selectRecord"
+    <el-table ref="multipleTable" stripe :data="record.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
       tooltip-effect="dark" style="width: 100%;margin-top: 2%;" @selection-change="handleSelectionChange">
       <!-- 选择框和index -->
       <el-table-column type="selection" width="100%"></el-table-column>
@@ -177,7 +176,6 @@ export default {
     return {
       relationName: "room_info",
       record: [],//表格信息
-      selectRecord: [],//筛选出来的表格
 
       newAttr1: "",
       newAttr2: "",
@@ -426,7 +424,7 @@ export default {
         where: ["area", this.areaRange[0], this.areaRange[1]]
       }).then(response => {
         console.log('筛选结果：', response)
-        this.addVisible = false
+        this.selectVisible = false
         this.record = response.data
         return response;
       }).catch((error) => {

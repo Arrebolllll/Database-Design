@@ -1,16 +1,15 @@
 <template>
   <div class="file-manager">
-    <!-- 顶部按钮 -->
-    <el-button type="primary" @click="openAdd" round>新增销售记录<i class="el-icon-plus el-icon--right"></i></el-button>
-    <el-button round type="warning" @click="selectVisible = true" style="margin-left: 2%;">筛选<i
-        class="el-icon-search el-icon--right"></i></el-button>
-    <el-button round type="info" @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
-        class="el-icon-circle-close el-icon--right"></i></el-button>
-    <el-button round @click="submitDelete" type="danger" style="margin-left: 2%;">删除选定<i
-        class="el-icon-delete el-icon--right"></i></el-button>
-    <el-button round @click="fetchData" type="success" style="margin-left: 2%;">刷新列表<i
-        class="el-icon-refresh el-icon--right"></i></el-button>
-
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <el-button type="primary" @click="openAdd" round>新增销售记录<i class="el-icon-plus el-icon--right"></i></el-button>
+      <el-button round type="info" @click="toggleSelection()">取消选择<i
+          class="el-icon-circle-close el-icon--right"></i></el-button>
+      <el-button round @click="submitDelete" type="danger">删除选定<i class="el-icon-delete el-icon--right"></i></el-button>
+      <el-button round @click="fetchData" type="success">刷新列表<i class="el-icon-refresh el-icon--right"></i></el-button>
+      <el-button round @click="overall">查看总体销售情况</el-button>
+      <el-input v-model="searchKey1" size="mini" placeholder="输入客户名字搜索" />
+      <el-input v-model="searchKey2" size="mini" placeholder="输入楼号搜索" />
+    </div>
     <!-- 新增记录窗口 -->
     <el-dialog title="新增楼盘信息" :visible.sync="addVisible" width="30%" :before-close="handleClose">
       <el-form label-width="17%">
@@ -43,6 +42,11 @@
           <el-input v-model="contact" placeholder="请输入联系方式" style="width: 70%;">
           </el-input>
         </el-form-item>
+        <h2 style="margin-bottom: 5%;">付费情况</h2>
+        <el-form-item label="剩余分期数" required label-position="left">
+          <el-input v-model="remain" style="width: 70%;">
+          </el-input>
+        </el-form-item>
       </el-form>
       <!-- 下方按钮 -->
       <span slot="footer" class="dialog-footer">
@@ -51,23 +55,8 @@
       </span>
     </el-dialog>
 
-    <!-- 筛选记录弹出窗口 -->
-    <el-dialog title="筛选" :visible.sync="selectVisible" width="30%" :before-close="handleClose">
-      <el-form>
-        <el-form-item label="新增属性一" required><el-input v-model="newAttr1" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性二" required><el-input v-model="newAttr2" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性三" required><el-input v-model="newAttr3" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性四" required><el-input v-model="newAttr4" placeholder=""></el-input></el-form-item>
-      </el-form>
-      <!-- 下方按钮 -->
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="selectVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitSelect">确 定</el-button>
-      </span>
-    </el-dialog>
-
-    <el-table ref="multipleTable" stripe :data="record.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
-      tooltip-effect="dark" style="width: 100%;margin-top: 2%;" @selection-change="handleSelectionChange">
+    <el-table ref="multipleTable" stripe :data="filteredData" tooltip-effect="dark" style="width: 100%;margin-top: 2%;"
+      @selection-change="handleSelectionChange">
       <!-- 选择框和index -->
       <el-table-column type="selection" width="100%"></el-table-column>
       <el-table-column type="index" min-width="20%"></el-table-column>
@@ -90,8 +79,7 @@
       </el-table-column>
       <el-table-column label="操作" min-width="20%">
         <template slot-scope="scope">
-          <a href="javascript:;" @click="deleteRecord(scope.row)">删除 | </a>
-          <a href="javascript:;">修改</a>
+          <a href="javascript:;" @click="deleteRecord(scope.row)">删除</a>
         </template>
       </el-table-column>
     </el-table>
@@ -110,24 +98,35 @@ export default {
       relationName: "sell_info",
       record: [],//关系元组信息
       addVisible: false, //新增记录弹出窗口
-      selectVisible: false, //筛选记录弹出窗口
-      newAttr1: "",
-      newAttr2: "",
-      newAttr3: "",
-      newAttr4: "",
+
+      searchKey1: '', //处理sell_info的后续查询
+      searchKey2: '',
 
       locate: 'A',
       roomNum: '',
       roomType: '',
       name: '',
       contact: '',
+      remain: '',
       roomTypeOptions: ['A', 'B', 'C', 'D', 'E'],
       insertResult: [],
 
       currentPage: 1,
       pageSize: 10,
 
-      deleteList: []  //删除列表
+      deleteList: [],  //删除列表
+      overall: {
+        total: '',
+        male: '',
+        female: '',
+        maxRemain: '',
+        minRemain: '',
+        A: 'None',
+        B: 'None',
+        C: 'None',
+        D: 'None',
+        E: 'None'
+      }
     }
   },
   created() {
@@ -135,6 +134,27 @@ export default {
   },
   mounted() {
     this.pageSize = Math.floor(window.innerWidth / 170);
+  },
+  computed: {
+    filteredData() {
+      const filteredBySearchKey1 = this.record.filter(item => item[7].toLowerCase().includes(this.searchKey1.toLowerCase()));
+      const filteredBySearchKey2 = this.record.filter(item => item[0].toLowerCase().includes(this.searchKey2.toLowerCase()));
+      if (!this.searchKey1 && !this.searchKey2) {
+        return this.record.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+      }
+      if (this.searchKey1 && this.searchKey2) {
+        let result = filteredBySearchKey1.filter(item => filteredBySearchKey2.includes(item))
+        return result.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+      }
+      else {
+        if (this.searchKey1.length > 0) {
+          return filteredBySearchKey1.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+        }
+        if (this.searchKey2.length > 0) {
+          return filteredBySearchKey2.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+        }
+      }
+    },
   },
   methods: {
     openAdd() {
@@ -213,20 +233,34 @@ export default {
     },
     submitAdd() {
       console.log('我要增加记录')
+      this.addVisible = false
       this.insertResult.push(quote(this.locate))
       this.insertResult.push(this.newFloor)
       this.insertResult.push(quote(this.roomType))
       this.insertResult.push(quote(this.name))
       this.insertResult.push(quote(this.contact))
+      this.insertResult.push()
       console.log(this.insertResult)
-      axios.post('http://127.0.0.1:5000/insert', {
-        table: this.relationName,
-        values: this.insertResult
+      axios.post('http://127.0.0.1:5000/insertsell', {
+        roomnumber: this.roomNum,
+        building: this.locate,
+        type: this.roomType,
+        telephone: this.contact,
+        cname: this.name,
+        remain: this.remain
       }).then(response => {
         console.log(response);
+        this.addVisible = false
+        this.$message({
+          message: '销售记录插入成功',
+          type: 'success'
+        });
         return response;
       }).catch((error) => {
-        console.log(error);
+        this.$message({
+          message: '请先插入对应的客户和房间信息！',
+          type: 'error'
+        });
         return error;
       });
     },
@@ -234,7 +268,7 @@ export default {
       console.log('我要筛选出记录')
     },
     fetchData() {
-      console.log('我要一进来就获取数据')
+      console.log('我要一进来就获取数据', this.record)
       axios.get('http://127.0.0.1:5000/selectsell', {
         table: this.relationName
       }).then(response => {
@@ -271,6 +305,9 @@ export default {
     handleCurrentChange(val) {
       console.log(`当前页: ${val}`);
       this.currentPage = val;
+    },
+    overall() {
+      axios
     }
   }
 };

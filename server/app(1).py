@@ -52,6 +52,8 @@ def insertsell():
         ridhash = str(val.get("roomnumber")) + str(val.get("building")) + str(val.get("type"))
         rid = generate_hash(ridhash)
         cidhash = str(val.get("telephone")) + val.get("cname")
+        print(ridhash)
+        print(cidhash)
         cid = generate_hash(cidhash)
         sid = generate_hash(rid + cid)
         sql = f"insert into sell_info values ('{sid}','{cid}','{rid}',{val.get('remain')})"
@@ -142,7 +144,6 @@ def update():
         set_string = set_string[0:-1]  # 删除末尾逗号
 
         sql = f"update {val.get('table')} set {set_string} where {val.get('where')[0]}={val.get('where')[1]}"
-        print(sql)
         cur.execute(sql)
         conn.commit()
         response = {"status": "success", "message": "Data successfully updated"}
