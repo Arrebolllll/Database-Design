@@ -2,7 +2,7 @@
   <div class="file-manager">
     <!-- 顶部按钮 -->
     <el-button type="primary" @click="openAdd" round>新增<i class="el-icon-plus el-icon--right"></i></el-button>
-    <el-button round type="warning" @click="selectVisible = true" style="margin-left: 2%;">筛选<i
+    <el-button round type="warning" @click="openSelect" style="margin-left: 2%;">筛选<i
         class="el-icon-search el-icon--right"></i></el-button>
     <el-button round type="info" @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
         class="el-icon-circle-close el-icon--right"></i></el-button>
@@ -54,17 +54,36 @@
     </el-dialog>
 
     <!-- 筛选记录弹出窗口 -->
-    <el-dialog title="筛选" :visible.sync="selectVisible" width="30%" :before-close="handleClose">
+    <el-dialog title="筛选" :visible.sync="selectVisible" width="60%" :before-close="handleClose">
       <el-form>
-        <el-form-item label="新增属性一" required><el-input v-model="newAttr1" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性二" required><el-input v-model="newAttr2" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性三" required><el-input v-model="newAttr3" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性四" required><el-input v-model="newAttr4" placeholder=""></el-input></el-form-item>
+        <h3 style="margin-bottom: 3%;">筛选层高</h3>
+        <el-form-item label="楼号"><el-radio-group v-model="locate">
+            <el-radio-button label="A"></el-radio-button>
+            <el-radio-button label="B"></el-radio-button>
+            <el-radio-button label="C"></el-radio-button>
+            <el-radio-button label="D"></el-radio-button>
+            <el-radio-button label="E"></el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <h3 style="margin-bottom: 3%;">筛选面积</h3>
+        <el-form-item label="面积">
+          <div class="block" style="margin-left: 8%;">
+            <el-slider v-model="areaRange" range>
+            </el-slider>
+          </div>
+        </el-form-item>
+        <h3 style="margin-bottom: 3%;">筛选价格</h3>
+        <el-form-item label="价格">
+          <div class="block" style="margin-left: 8%;">
+            <el-slider v-model="priceRange" range>
+            </el-slider>
+          </div>
+        </el-form-item>
       </el-form>
       <!-- 下方按钮 -->
       <span slot="footer" class="dialog-footer">
         <el-button @click="selectVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitSelect">确 定</el-button>
+        <el-button type="primary" @click="selectArea">确 定</el-button>
       </span>
     </el-dialog>
 
@@ -110,7 +129,8 @@
       </span>
     </el-dialog>
 
-    <el-table ref="multipleTable" stripe :data="record.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
+    <el-table ref="multipleTable" stripe
+      :data="selectRecord.length === 0 ? record.slice((currentPage - 1) * pageSize, currentPage * pageSize) : selectRecord"
       tooltip-effect="dark" style="width: 100%;margin-top: 2%;" @selection-change="handleSelectionChange">
       <!-- 选择框和index -->
       <el-table-column type="selection" width="100%"></el-table-column>
@@ -157,6 +177,7 @@ export default {
     return {
       relationName: "room_info",
       record: [],//表格信息
+      selectRecord: [],//筛选出来的表格
 
       newAttr1: "",
       newAttr2: "",
@@ -183,6 +204,16 @@ export default {
       modifyVisible: false, // 修改记录弹出窗口
       addVisible: false, //新增记录弹出窗口
       selectVisible: false, //筛选记录弹出窗口
+
+      // 筛选
+      areaRange: [10, 20],  //那两个滑动条
+      priceRange: [10, 20],
+
+      // 统计
+      minArea: '12',
+      maxArea: '34',
+      minPrice: '',
+      maxPrice: ''
     }
   },
   created() {
@@ -192,6 +223,13 @@ export default {
     this.pageSize = Math.floor(window.innerWidth / 170);
   },
   methods: {
+    openSelect() {
+      //打开筛选窗口
+      this.selectVisible = true
+      this.locate = ''
+      this.areaRange = [0, 100]
+      this.priceRange = [0, 100]
+    },
     openAdd() {
       // 打开弹窗，清空状态
       this.addVisible = true
@@ -310,8 +348,7 @@ export default {
     },
     submitModify() {
       let setArr = []
-      setArr.push('rid', quote(this.rid))
-      setArr.push('building', quote(this.locate))
+      setArr.push('building', quote(this.locate).toLowerCase())
       setArr.push('floor', this.floor)
       setArr.push('room_number', this.roomNum)
       setArr.push('area', this.area)
@@ -325,7 +362,7 @@ export default {
         where: where
       }).then(response => {
         console.log(response);
-        this.addVisible = false
+        this.modifyVisible = false
         this.fetchData()
         this.$message({
           message: '修改成功',
@@ -381,6 +418,21 @@ export default {
     handleCurrentChange(val) {
       console.log(`当前页: ${val}`);
       this.currentPage = val;
+    },
+    selectArea() {
+      axios.post('http://127.0.0.1:5000/selectrange', {
+        table: this.relationName,
+        select: "*",
+        where: ["area", this.areaRange[0], this.areaRange[1]]
+      }).then(response => {
+        console.log('筛选结果：', response)
+        this.addVisible = false
+        this.record = response.data
+        return response;
+      }).catch((error) => {
+        console.log(error);
+        return error;
+      });
     }
   }
 };

@@ -122,17 +122,26 @@ def insert():
 
 @app.route('/update', methods=['POST'])
 def update():
-    # 需要三段分为update后接表名，set后面接一个两个元素的列表，where后面接两个元素的列表，列表里两项分别为属性和值
+    # 需要三段分为 update 后接表名，set 后面接一个两个元素的列表，where 后面接两个元素的列表，列表里两项分别为属性和值
     """
     {
-    "table":"custom_info",
-    "set":["cname","'zsr'"],
-    "where":["cid","'1'"]
+        "table": "custom_info",
+        "set": ["cname", "'zsr'"],
+        "where": ["cid", "'1'"]
     }
     """
     try:
         val = request.get_json()  # update students set grade='2001' where sid='21307283'
-        sql = f"update {val.get('table')} set {val.get('set')[0]}={val.get('set')[1]} where {val.get('where')[0]}={val.get('where')[1]}"
+        setlist = val.get('set')
+        set_string = ""
+        for i in range(0, len(setlist), 2):
+            set_string += setlist[i]
+            i += 1
+            set_string += '=' + str(setlist[i]) + ','
+
+        set_string = set_string[0:-1]  # 删除末尾逗号
+
+        sql = f"update {val.get('table')} set {set_string} where {val.get('where')[0]}={val.get('where')[1]}"
         print(sql)
         cur.execute(sql)
         conn.commit()
@@ -145,6 +154,7 @@ def update():
         # Return error message to the frontend
         response = {"status": "error", "message": f"Error: {e}"}
         return make_response(json.dumps(response), 500)
+
 
 
 @app.route('/selectsell', methods=['GET'])
@@ -248,6 +258,7 @@ def selectrange():
 
         where_string = f"{wherelist[0]}>={wherelist[1]} and {wherelist[0]}<={wherelist[2]}"
         sql = f"select {select_string} from {val.get('table')} where {where_string}"
+        print('筛选sql', sql)
         cur.execute(sql)
         data = cur.fetchall()
         conn.commit()
