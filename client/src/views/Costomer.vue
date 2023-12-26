@@ -4,10 +4,12 @@
     <el-button type="primary" @click="openAdd" round>新增客户<i class="el-icon-plus el-icon--right"></i></el-button>
     <el-button round type="warning" @click="selectVisible = true" style="margin-left: 2%;">筛选客户<i
         class="el-icon-search el-icon--right"></i></el-button>
-    <el-button round @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
+    <el-button round type="info" @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
         class="el-icon-circle-close el-icon--right"></i></el-button>
     <el-button round @click="submitDelete" type="danger" style="margin-left: 2%;">删除选定<i
         class="el-icon-delete el-icon--right"></i></el-button>
+    <el-button round @click="fetchData" type="success" style="margin-left: 2%;">刷新列表<i
+        class="el-icon-refresh el-icon--right"></i></el-button>
 
     <!-- 新增记录窗口 -->
     <el-dialog title="新增客户" :visible.sync="addVisible" width="30%" :before-close="handleClose">
@@ -24,8 +26,8 @@
           <el-input v-model="newAge" placeholder="请输入年龄" style="width: 70%;">
           </el-input>
         </el-form-item>
-        <el-form-item label="联系方式" required placeholder="请输入联系方式" label-position="left">
-          <el-input v-model="newAge" placeholder="请输入年龄" style="width: 70%;">
+        <el-form-item label="联系方式" required label-position="left">
+          <el-input v-model="newContact" placeholder="请输入联系方式" style="width: 70%;">
           </el-input>
         </el-form-item>
       </el-form>
@@ -198,16 +200,30 @@ export default {
     },
     submitAdd() {
       console.log('我要增加记录')
-
+      this.insertResult = []
+      this.insertResult.push(quote(this.newName))
+      this.insertResult.push(quote(this.newContact))
+      this.insertResult.push(quote(this.newGender === '女' ? 'female' : 'male'))
+      this.insertResult.push(this.newAge)
       console.log(this.insertResult)
       axios.post('http://127.0.0.1:5000/insert', {
         table: this.relationName,
         values: this.insertResult
       }).then(response => {
         console.log(response);
+        this.addVisible = false
+        this.fetchData()
+        this.$message({
+          message: '插入成功',
+          type: 'success'
+        });
         return response;
       }).catch((error) => {
-        console.log(error);
+        this.$message({
+          message: '插入失败',
+          type: 'error'
+        });
+        console.log(error)
         return error;
       });
     },

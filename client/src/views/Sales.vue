@@ -4,14 +4,17 @@
     <el-button type="primary" @click="openAdd" round>新增销售记录<i class="el-icon-plus el-icon--right"></i></el-button>
     <el-button round type="warning" @click="selectVisible = true" style="margin-left: 2%;">筛选<i
         class="el-icon-search el-icon--right"></i></el-button>
-    <el-button round @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
+    <el-button round type="info" @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
         class="el-icon-circle-close el-icon--right"></i></el-button>
     <el-button round @click="submitDelete" type="danger" style="margin-left: 2%;">删除选定<i
         class="el-icon-delete el-icon--right"></i></el-button>
+    <el-button round @click="fetchData" type="success" style="margin-left: 2%;">刷新列表<i
+        class="el-icon-refresh el-icon--right"></i></el-button>
 
     <!-- 新增记录窗口 -->
     <el-dialog title="新增楼盘信息" :visible.sync="addVisible" width="30%" :before-close="handleClose">
       <el-form label-width="17%">
+        <h2 style="margin-bottom: 5%;">购入房间信息</h2>
         <el-form-item label="楼栋" required>
           <el-radio-group v-model="newLocate">
             <el-radio-button label="A"></el-radio-button>
@@ -21,12 +24,8 @@
             <el-radio-button label="E"></el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="层数" required>
-          <el-input v-model="newFloor" placeholder="请输入位置" style="width: 70%;">
-          </el-input>
-        </el-form-item>
-        <el-form-item label="面积" required>
-          <el-input v-model="newArea" placeholder="请输入面积" style="width: 70%;">
+        <el-form-item label="房间号" required>
+          <el-input v-model="newRoomNum" placeholder="请输入房间号" style="width: 70%;">
           </el-input>
         </el-form-item>
         <el-form-item label="户型" required placeholder="请选择户型" label-position="left">
@@ -35,8 +34,13 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="每平方价格" required>
-          <el-input v-model="newPrice" placeholder="请输入价格" style="width: 70%;">
+        <h2 style="margin-bottom: 5%;">购买人信息</h2>
+        <el-form-item label="姓名" required label-position="left">
+          <el-input v-model="newName" placeholder="请输入买家姓名" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="联系方式" required>
+          <el-input v-model="newContact" placeholder="请输入联系方式" style="width: 70%;">
           </el-input>
         </el-form-item>
       </el-form>
@@ -113,10 +117,11 @@ export default {
       newAttr4: "",
 
       newLocate: 'A',
-      newFloor: '',
-      newArea: '',
-      newPrice: '',
+      newRoomNum: '',
       newRoomType: '',
+      newName: '',
+      newContact: '',
+      roomTypeOptions: ['A', 'B', 'C', 'D', 'E'],
       insertResult: [],
 
       currentPage: 1,
@@ -208,11 +213,11 @@ export default {
     },
     submitAdd() {
       console.log('我要增加记录')
-      // this.insertResult.push(quote(this.newLocate))
-      // this.insertResult.push(this.newFloor)
-      // this.insertResult.push(this.newArea)
-      // this.insertResult.push(this.newPrice)
-      // this.insertResult.push(quote(this.newRoomType))
+      this.insertResult.push(quote(this.newLocate))
+      this.insertResult.push(this.newFloor)
+      this.insertResult.push(quote(this.newRoomType))
+      this.insertResult.push(quote(this.newName))
+      this.insertResult.push(quote(this.newContact))
       console.log(this.insertResult)
       axios.post('http://127.0.0.1:5000/insert', {
         table: this.relationName,

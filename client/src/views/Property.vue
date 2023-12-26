@@ -4,10 +4,12 @@
     <el-button type="primary" @click="openAdd" round>新增<i class="el-icon-plus el-icon--right"></i></el-button>
     <el-button round type="warning" @click="selectVisible = true" style="margin-left: 2%;">筛选<i
         class="el-icon-search el-icon--right"></i></el-button>
-    <el-button round @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
+    <el-button round type="info" @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
         class="el-icon-circle-close el-icon--right"></i></el-button>
     <el-button round @click="submitDelete" type="danger" style="margin-left: 2%;">删除选定<i
         class="el-icon-delete el-icon--right"></i></el-button>
+    <el-button round @click="fetchData" type="success" style="margin-left: 2%;">刷新列表<i
+        class="el-icon-refresh el-icon--right"></i></el-button>
 
     <!-- 新增记录窗口 -->
     <el-dialog title="新增楼盘信息" :visible.sync="addVisible" width="30%" :before-close="handleClose">
@@ -127,7 +129,7 @@ export default {
       newArea: '',
       newPrice: '',
       newRoomType: '',
-      roomTypeOptions: ['A型', 'B型', 'C型', 'D型', 'E型'],
+      roomTypeOptions: ['A', 'B', 'C', 'D', 'E'],
       insertResult: [],
 
       currentPage: 1, //默认页数
@@ -179,7 +181,7 @@ export default {
           type: 'warning'
         });
       } else {
-        console.log('我要全部删除',this.deleteList)
+        console.log('我要全部删除', this.deleteList)
         var deletePromises = this.deleteList.map(item => this.deleteAxios(item));
         // 使用 Promise.all 来等待所有删除请求完成
         Promise.all(deletePromises)
@@ -220,8 +222,8 @@ export default {
     },
     submitAdd() {
       console.log('我要增加记录')
-      this.insertResult.push()
-      this.insertResult.push(quote(this.newLocate))
+      this.insertResult = []
+      this.insertResult.push(quote(this.newLocate.toLowerCase()))
       this.insertResult.push(this.newFloor)
       this.insertResult.push(quote(this.newRoomNum))
       this.insertResult.push(this.newArea)
@@ -233,9 +235,18 @@ export default {
         values: this.insertResult
       }).then(response => {
         console.log(response);
+        this.addVisible = false
+        this.fetchData()
+        this.$message({
+          message: '插入成功',
+          type: 'success'
+        });
         return response;
       }).catch((error) => {
-        console.log(error);
+        this.$message({
+          message: '插入失败',
+          type: 'error'
+        });
         return error;
       });
     },

@@ -71,35 +71,52 @@ def insertsell():
 
 @app.route('/insert', methods=['POST'])
 def insert():
-    # 传{"table":'table_name',"values":[]} 列表里字符串需套单引号
     """
-{
-    "table":"custom_info",
-    "values":["'123'","'zsr'","'17728'","'male'","20"]
-  
-}
-"""
-    try:  # 事务自动回退格式
-        val = request.get_json()  # val.get('(key)')得到一个字符串，用f字符串解析生成sql语句
-        print(val)
-        id = generate_hash(val)
-        print(val)
-        insertstr = f"('{id}',"
+    用于向数据库插入数据的端点。
+    负载示例：
+    {
+        "table": "room_info",
+        "values": ["'e'", 6, "'61'", 98, 98, "'B'"]
+    }
+    """
+    try:
+        # 从请求中获取JSON数据
+        val = request.get_json()
+
+        # 根据表类型生成哈希对象
+        hash_object = ""
+        if val.get('table') == "custom_info":
+            hash_object = str(val.get('values')[1]) + val.get('values')[0]  # hash_object = telephone + cname
+        elif val.get('table') == "room_info":
+            hash_object = str(val.get('values')[2]) + str(val.get('values')[0]) + str(
+                val.get('values')[-1])  # hash_object = roomnumber + building + type
+
+        # 使用哈希对象生成ID
+        id = generate_hash(hash_object)
+
+        # 构建插入字符串
+        insert_str = f"('{id}',"
         for value in val.get('values'):
-            insertstr += str(value) + ","
-        insertstr = insertstr[:-1] + ')'  # 删逗号加括号，便于插入
-        sql = f"insert into {val.get('table')} values {insertstr}"
-        print(sql)
+            insert_str += str(value) + ","
+        insert_str = insert_str[:-1] + ')'  # 删除尾随逗号并添加闭括号
+
+        # 构建SQL查询
+        sql = f"INSERT INTO {val.get('table')} VALUES {insert_str}"
+
+        # 执行查询并提交更改
         cur.execute(sql)
         conn.commit()
-        # Return success message to the frontend
-        response = {"status": "success", "message": "Data successfully inserted"}
+
+        # 返回成功消息给前端
+        response = {"status": "success", "message": "数据成功插入"}
         return json.dumps(response)
+
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"错误: {e}")
         conn.rollback()
-        # Return error message to the frontend
-        response = {"status": "error", "message": f"Error: {e}"}
+
+        # 返回错误消息给前端
+        response = {"status": "error", "message": f"错误: {e}"}
         return make_response(json.dumps(response), 500)
 
 
