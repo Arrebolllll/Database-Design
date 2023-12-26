@@ -62,8 +62,7 @@
       </span>
     </el-dialog>
 
-    <el-table ref="multipleTable" stripe
-      :data="record.filter(data => !searchKey || data.name.toLowerCase().includes(search.toLowerCase()))"
+    <el-table ref="multipleTable" stripe :data="record.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
       tooltip-effect="dark" style="width: 100%;margin-top: 2%;" @selection-change="handleSelectionChange">
       <!-- 选择框和index -->
       <el-table-column type="selection" width="100%"></el-table-column>
@@ -91,14 +90,18 @@
           <a href="javascript:;">修改</a>
         </template>
       </el-table-column>
-
-      <!-- 右侧关键字查询框 -->
-      <el-table-column align="right" min-width="20%">
-        <template slot="header" slot-scope="scope">
-          <el-input v-model="searchKey" size="mini" placeholder="输入关键字搜索" />
-        </template>
-      </el-table-column>
     </el-table>
+    <el-pagination
+      align="center"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="currentPage"
+      :page-sizes="[1, 5, 10, 20]"
+      :page-size="pageSize"
+      style="margin-top: 2%;"
+      layout="total, sizes, prev, pager, next, jumper"
+      :total="record.length"
+    ></el-pagination>
   </div>
 </template>
 <script>
@@ -109,22 +112,23 @@ export default {
   data() {
     return {
       relationName: "sell_info",
-      record: [],//表格信息
+      record: [],//关系元组信息
       addVisible: false, //新增记录弹出窗口
       selectVisible: false, //筛选记录弹出窗口
       newAttr1: "",
       newAttr2: "",
       newAttr3: "",
       newAttr4: "",
-      searchKey: "", //查询的关键字
 
       newLocate: 'A',
       newFloor: '',
       newArea: '',
       newPrice: '',
       newRoomType: '',
-      roomTypeOptions: ['A型', 'B型', 'C型'],
       insertResult: [],
+
+      currentPage: 1,
+      pageSize: 10,
 
     }
   },
@@ -208,6 +212,17 @@ export default {
         })
         .catch(_ => { });
     },
+    //每页条数改变时触发 选择一页显示多少行
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+      this.currentPage = 1;
+      this.pageSize = val;
+    },
+    //当前页改变时触发 跳转其他页
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`);
+      this.currentPage = val;
+    }
   }
 };
 </script>

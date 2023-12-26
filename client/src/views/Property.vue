@@ -12,7 +12,7 @@
     <!-- 新增记录窗口 -->
     <el-dialog title="新增楼盘信息" :visible.sync="addVisible" width="30%" :before-close="handleClose">
       <el-form label-width="17%">
-        <el-form-item label="楼栋" required>
+        <el-form-item label="楼号" required>
           <el-radio-group v-model="newLocate">
             <el-radio-button label="A"></el-radio-button>
             <el-radio-button label="B"></el-radio-button>
@@ -21,8 +21,12 @@
             <el-radio-button label="E"></el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="层数" required>
-          <el-input v-model="newFloor" placeholder="请输入位置" style="width: 70%;">
+        <el-form-item label="层号" required>
+          <el-input v-model="newFloor" placeholder="请输入层号" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="房号" required>
+          <el-input v-model="newRoomNum" placeholder="请输入房号" style="width: 70%;">
           </el-input>
         </el-form-item>
         <el-form-item label="面积" required>
@@ -35,8 +39,8 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="每平方价格" required>
-          <el-input v-model="newPrice" placeholder="请输入价格" style="width: 70%;">
+        <el-form-item label="总价" required>
+          <el-input v-model="newPrice" placeholder="请输入总价" style="width: 70%;">
           </el-input>
         </el-form-item>
       </el-form>
@@ -62,8 +66,7 @@
       </span>
     </el-dialog>
 
-    <el-table ref="multipleTable" stripe
-      :data="record.filter(data => !searchKey || data.name.toLowerCase().includes(search.toLowerCase()))"
+    <el-table ref="multipleTable" stripe :data="record.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
       tooltip-effect="dark" style="width: 100%;margin-top: 2%;" @selection-change="handleSelectionChange">
       <!-- 选择框和index -->
       <el-table-column type="selection" width="100%"></el-table-column>
@@ -72,6 +75,9 @@
       <!-- 表的属性 -->
       <el-table-column label="楼号" min-width="20%" sortable :sort-method="sortByName">
         <template slot-scope="scope">{{ scope.row[1] }}</template>
+      </el-table-column>
+      <el-table-column label="层号" min-width="20%" sortable :sort-method="sortByName">
+        <template slot-scope="scope">{{ scope.row[2] }}</template>
       </el-table-column>
       <el-table-column label="房号" min-width="20%" sortable :sort-method="sortByName">
         <template slot-scope="scope">{{ scope.row[3] }}</template>
@@ -83,7 +89,7 @@
         <template slot-scope="scope">{{ scope.row[6] }}</template>
       </el-table-column>
       <el-table-column label="总价" min-width="20%" sortable>
-        <template slot-scope="scope">{{ scope.row[5] }}</template>
+        <template slot-scope="scope">{{ scope.row[5] + 'w' }}</template>
       </el-table-column>
 
       <el-table-column label="操作" min-width="20%">
@@ -100,6 +106,9 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination align="center" @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      :current-page="currentPage" :page-sizes="[1, 5, 10, 20]" :page-size="pageSize" style="margin-top: 2%;"
+      layout="total, sizes, prev, pager, next, jumper" :total="record.length"></el-pagination>
   </div>
 </template>
 <script>
@@ -120,13 +129,16 @@ export default {
       searchKey: "", //查询的关键字
 
       newLocate: 'A',
-      newFloor: '',
+      newRoomNum: '',
+      newFloor:'',
       newArea: '',
       newPrice: '',
       newRoomType: '',
       roomTypeOptions: ['A型', 'B型', 'C型', 'D型', 'E型'],
       insertResult: [],
 
+      currentPage: 1, //默认页数
+      pageSize: 10, //默认显示行数
     }
   },
   created() {
@@ -138,6 +150,7 @@ export default {
       this.addVisible = true
       this.newLocate = "A"
       this.newFloor = ""
+      this.newRoomNum = ""
       this.newArea = ""
       this.newPrice = ""
       this.newRoomType = ""
@@ -163,6 +176,7 @@ export default {
       console.log('我要增加记录')
       this.insertResult.push(quote(this.newLocate))
       this.insertResult.push(this.newFloor)
+      this.insertResult.push(quote(this.newRoomNum))
       this.insertResult.push(this.newArea)
       this.insertResult.push(this.newPrice)
       this.insertResult.push(quote(this.newRoomType))
@@ -209,6 +223,17 @@ export default {
         })
         .catch(_ => { });
     },
+    //每页条数改变时触发 选择一页显示多少行
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+      this.currentPage = 1;
+      this.pageSize = val;
+    },
+    //当前页改变时触发 跳转其他页
+    handleCurrentChange(val) {
+      console.log(`当前页: ${val}`);
+      this.currentPage = val;
+    }
   }
 };
 </script>
