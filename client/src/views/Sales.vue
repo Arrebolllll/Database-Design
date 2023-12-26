@@ -1,7 +1,7 @@
 <template>
   <div class="file-manager">
     <!-- 顶部按钮 -->
-    <el-button type="primary" @click="addVisible = true" round>新增<i class="el-icon-plus el-icon--right"></i></el-button>
+    <el-button type="primary" @click="openAdd" round>新增销售记录<i class="el-icon-plus el-icon--right"></i></el-button>
     <el-button round type="warning" @click="selectVisible = true" style="margin-left: 2%;">筛选<i
         class="el-icon-search el-icon--right"></i></el-button>
     <el-button round @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
@@ -10,12 +10,35 @@
         class="el-icon-delete el-icon--right"></i></el-button>
 
     <!-- 新增记录窗口 -->
-    <el-dialog title="新增记录" :visible.sync="addVisible" width="30%" :before-close="handleClose">
-      <el-form>
-        <el-form-item label="新增属性一" required><el-input v-model="newAttr1" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性二" required><el-input v-model="newAttr2" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性三" required><el-input v-model="newAttr3" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性四" required><el-input v-model="newAttr4" placeholder=""></el-input></el-form-item>
+    <el-dialog title="新增楼盘信息" :visible.sync="addVisible" width="30%" :before-close="handleClose">
+      <el-form label-width="17%">
+        <el-form-item label="楼栋" required>
+          <el-radio-group v-model="newLocate">
+            <el-radio-button label="A"></el-radio-button>
+            <el-radio-button label="B"></el-radio-button>
+            <el-radio-button label="C"></el-radio-button>
+            <el-radio-button label="D"></el-radio-button>
+            <el-radio-button label="E"></el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="层数" required>
+          <el-input v-model="newFloor" placeholder="请输入位置" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="面积" required>
+          <el-input v-model="newArea" placeholder="请输入面积" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="户型" required placeholder="请选择户型" label-position="left">
+          <el-select v-model="newRoomType" style="width: 70%;">
+            <el-option v-for="item in roomTypeOptions" :key="item" :label="item" :value="item">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="每平方价格" required>
+          <el-input v-model="newPrice" placeholder="请输入价格" style="width: 70%;">
+          </el-input>
+        </el-form-item>
       </el-form>
       <!-- 下方按钮 -->
       <span slot="footer" class="dialog-footer">
@@ -39,7 +62,7 @@
       </span>
     </el-dialog>
 
-    <el-table ref="multipleTable"
+    <el-table ref="multipleTable" stripe
       :data="record.filter(data => !searchKey || data.name.toLowerCase().includes(search.toLowerCase()))"
       tooltip-effect="dark" style="width: 100%;margin-top: 2%;" @selection-change="handleSelectionChange">
       <!-- 选择框和index -->
@@ -47,11 +70,21 @@
       <el-table-column type="index" min-width="20%"></el-table-column>
 
       <!-- 表的属性 -->
-      <el-table-column label="面积" min-width="20%" show-overflow-tooltip sortable :sort-method="sortByName">
-        <template slot-scope="scope">{{ scope.row.name }}</template>
+      <el-table-column label="买家姓名" min-width="20%" sortable>
+        <template slot-scope="scope">{{ scope.row[7] }}</template>
       </el-table-column>
-      <el-table-column label="户型" min-width="20%" sortable></el-table-column>
-      <el-table-column label="每平方（元）" min-width="20%" sortable></el-table-column>
+      <el-table-column label="联系方式" min-width="20%" sortable>
+        <template slot-scope="scope">{{ scope.row[8] }}</template>
+      </el-table-column>
+      <el-table-column label="楼号" min-width="20%" show-overflow-tooltip sortable :sort-method="sortByName">
+        <template slot-scope="scope">{{ scope.row[0] }}</template>
+      </el-table-column>
+      <el-table-column label="房号" min-width="20%" sortable>
+        <template slot-scope="scope">{{ scope.row[2] }}</template>
+      </el-table-column>
+      <el-table-column label="剩余分期数" min-width="20%" sortable>
+        <template slot-scope="scope">{{ scope.row[6] }}</template>
+      </el-table-column>
       <el-table-column label="操作" min-width="20%">
         <template slot-scope="scope">
           <a href="javascript:;" @click="deleteRecord">删除 |</a>
@@ -70,6 +103,7 @@
 </template>
 <script>
 import axios from 'axios'
+import { quote } from '../utils/quoteString'
 import Cookies from 'js-cookie'
 export default {
   data() {
@@ -83,12 +117,31 @@ export default {
       newAttr3: "",
       newAttr4: "",
       searchKey: "", //查询的关键字
+
+      newLocate: 'A',
+      newFloor: '',
+      newArea: '',
+      newPrice: '',
+      newRoomType: '',
+      roomTypeOptions: ['A型', 'B型', 'C型'],
+      insertResult: [],
+
     }
   },
-  mounted() {
+  created() {
     this.fetchData();
   },
   methods: {
+    openAdd() {
+      // 打开弹窗，清空状态
+      this.addVisible = true
+      this.newLocate = "A"
+      this.newFloor = ""
+      this.newArea = ""
+      this.newPrice = ""
+      this.newRoomType = ""
+      this.insertResult = []
+    },
     toggleSelection(rows) {
       // 取消选择
       if (rows) {
@@ -107,12 +160,39 @@ export default {
     },
     submitAdd() {
       console.log('我要增加记录')
+      this.insertResult.push(quote(this.newLocate))
+      this.insertResult.push(this.newFloor)
+      this.insertResult.push(this.newArea)
+      this.insertResult.push(this.newPrice)
+      this.insertResult.push(quote(this.newRoomType))
+      console.log(this.insertResult)
+      axios.post('http://127.0.0.1:5000/insert', {
+        table: this.relationName,
+        values: this.insertResult
+      }).then(response => {
+        console.log(response);
+        return response;
+      }).catch((error) => {
+        console.log(error);
+        return error;
+      });
     },
     submitSelect() {
       console.log('我要筛选出记录')
     },
     fetchData() {
       console.log('我要一进来就获取数据')
+      axios.get('http://127.0.0.1:5000/selectsell', {
+        table: this.relationName
+      }).then(response => {
+        console.log(response);
+        this.addVisible = false;
+        this.record = response.data
+        return response;
+      }).catch((error) => {
+        console.log(error);
+        return error;
+      });
     },
     sortByName(obj1, obj2) {
       // 排序

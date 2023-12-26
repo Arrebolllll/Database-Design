@@ -1,8 +1,8 @@
 <template>
   <div class="file-manager">
     <!-- 顶部按钮 -->
-    <el-button type="primary" @click="addVisible = true" round>新增<i class="el-icon-plus el-icon--right"></i></el-button>
-    <el-button round type="warning" @click="selectVisible = true" style="margin-left: 2%;">筛选<i
+    <el-button type="primary" @click="openAdd" round>新增客户<i class="el-icon-plus el-icon--right"></i></el-button>
+    <el-button round type="warning" @click="selectVisible = true" style="margin-left: 2%;">筛选客户<i
         class="el-icon-search el-icon--right"></i></el-button>
     <el-button round @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
         class="el-icon-circle-close el-icon--right"></i></el-button>
@@ -10,12 +10,24 @@
         class="el-icon-delete el-icon--right"></i></el-button>
 
     <!-- 新增记录窗口 -->
-    <el-dialog title="新增记录" :visible.sync="addVisible" width="30%" :before-close="handleClose">
-      <el-form>
-        <el-form-item label="新增属性一" required><el-input v-model="newAttr1" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性二" required><el-input v-model="newAttr2" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性三" required><el-input v-model="newAttr3" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性四" required><el-input v-model="newAttr4" placeholder=""></el-input></el-form-item>
+    <el-dialog title="新增客户" :visible.sync="addVisible" width="30%" :before-close="handleClose">
+      <el-form label-width="17%">
+        <el-form-item label="姓名" required>
+          <el-input v-model="newName" placeholder="请输入姓名" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="性别" required>
+          <el-radio label="男" v-model="newGender" border></el-radio>
+          <el-radio label="女" v-model="newGender" border></el-radio>
+        </el-form-item>
+        <el-form-item label="年龄" required>
+          <el-input v-model="newAge" placeholder="请输入年龄" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="联系方式" required placeholder="请输入联系方式" label-position="left">
+          <el-input v-model="newAge" placeholder="请输入年龄" style="width: 70%;">
+          </el-input>
+        </el-form-item>
       </el-form>
       <!-- 下方按钮 -->
       <span slot="footer" class="dialog-footer">
@@ -39,7 +51,7 @@
       </span>
     </el-dialog>
 
-    <el-table ref="multipleTable"
+    <el-table ref="multipleTable" stripe
       :data="record.filter(data => !searchKey || data.name.toLowerCase().includes(search.toLowerCase()))"
       tooltip-effect="dark" style="width: 100%;margin-top: 2%;" @selection-change="handleSelectionChange">
       <!-- 选择框和index -->
@@ -47,11 +59,19 @@
       <el-table-column type="index" min-width="20%"></el-table-column>
 
       <!-- 表的属性 -->
-      <el-table-column label="姓名" min-width="20%" show-overflow-tooltip sortable :sort-method="sortByName">
-        <template slot-scope="scope">{{ scope.row.name }}</template>
+      <el-table-column label="客户名字" min-width="20%" sortable>
+        <template slot-scope="scope">{{ scope.row[1] }}</template>
       </el-table-column>
-      <el-table-column label="性别" min-width="20%" sortable></el-table-column>
-      <el-table-column label="联系方式" min-width="20%" sortable></el-table-column>
+      <el-table-column label="性别" min-width="20%">
+        <template slot-scope="scope">{{ scope.row[3] === 'female' ? '女' : '男' }}</template>
+      </el-table-column>
+
+      <el-table-column label="年龄" min-width="20%" sortable :sort-method="sortByName">
+        <template slot-scope="scope">{{ scope.row[4] }}</template>
+      </el-table-column>
+      <el-table-column label="联系方式" min-width="20%">
+        <template slot-scope="scope">{{ scope.row[2] }}</template>
+      </el-table-column>
       <el-table-column label="操作" min-width="20%">
         <template slot-scope="scope">
           <a href="javascript:;" @click="deleteRecord">删除 |</a>
@@ -70,6 +90,7 @@
 </template>
 <script>
 import axios from 'axios'
+import { quote } from '../utils/quoteString'
 import Cookies from 'js-cookie'
 export default {
   data() {
@@ -83,12 +104,28 @@ export default {
       newAttr3: "",
       newAttr4: "",
       searchKey: "", //查询的关键字
+
+      newName: '',
+      newGender: '',
+      newAge: '',
+      newContact: '',
+      insertResult: [],
+
     }
   },
-  mounted() {
+  created() {
     this.fetchData();
   },
   methods: {
+    openAdd() {
+      // 打开弹窗，清空状态
+      this.addVisible = true
+      this.newName = ""
+      this.newGender = ""
+      this.newAge = ""
+      this.newContact = ""
+      this.insertResult = []
+    },
     toggleSelection(rows) {
       // 取消选择
       if (rows) {
@@ -107,12 +144,35 @@ export default {
     },
     submitAdd() {
       console.log('我要增加记录')
+
+      console.log(this.insertResult)
+      axios.post('http://127.0.0.1:5000/insert', {
+        table: this.relationName,
+        values: this.insertResult
+      }).then(response => {
+        console.log(response);
+        return response;
+      }).catch((error) => {
+        console.log(error);
+        return error;
+      });
     },
     submitSelect() {
       console.log('我要筛选出记录')
     },
     fetchData() {
       console.log('我要一进来就获取数据')
+      axios.post('http://127.0.0.1:5000/selectstar', {
+        table: this.relationName
+      }).then(response => {
+        console.log(response);
+        this.addVisible = false;
+        this.record = response.data
+        return response;
+      }).catch((error) => {
+        console.log(error);
+        return error;
+      });
     },
     sortByName(obj1, obj2) {
       // 排序

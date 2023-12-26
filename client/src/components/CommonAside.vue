@@ -53,21 +53,22 @@ export default {
                 {
                     path: "/property",
                     name: "property",
-                    label: "楼盘信息",
+                    label: "楼盘总览",
                     icon: "setting",
-                },
-                {
-                    path: "/sales",
-                    name: "sales",
-                    label: "销售管理",
-                    icon: "user",
                 },
                 {
                     path: "/customer",
                     name: "customer",
-                    label: "客户管理",
-                    icon: "help",
+                    label: "客户",
+                    icon: "user",
                 },
+                {
+                    path: "/sales",
+                    name: "sales",
+                    label: "售房情况",
+                    icon: "user",
+                },
+                
                 {
                     path: "/test",
                     name: "test",

@@ -29,7 +29,7 @@
           <el-input v-model="newArea" placeholder="请输入面积" style="width: 70%;">
           </el-input>
         </el-form-item>
-        <el-form-item label="户型" required placeholder="请选择户型" label-position="left" >
+        <el-form-item label="户型" required placeholder="请选择户型" label-position="left">
           <el-select v-model="newRoomType" style="width: 70%;">
             <el-option v-for="item in roomTypeOptions" :key="item" :label="item" :value="item">
             </el-option>
@@ -62,7 +62,7 @@
       </span>
     </el-dialog>
 
-    <el-table ref="multipleTable"
+    <el-table ref="multipleTable" stripe
       :data="record.filter(data => !searchKey || data.name.toLowerCase().includes(search.toLowerCase()))"
       tooltip-effect="dark" style="width: 100%;margin-top: 2%;" @selection-change="handleSelectionChange">
       <!-- 选择框和index -->
@@ -70,13 +70,22 @@
       <el-table-column type="index" min-width="20%"></el-table-column>
 
       <!-- 表的属性 -->
-      <el-table-column label="所属楼宇" min-width="20%" sortable></el-table-column>
-      <el-table-column label="楼层" min-width="20%" sortable></el-table-column>
-      <el-table-column label="面积" min-width="20%" show-overflow-tooltip sortable :sort-method="sortByName">
-        <template slot-scope="scope">{{ scope.row.name }}</template>
+      <el-table-column label="楼号" min-width="20%" sortable :sort-method="sortByName">
+        <template slot-scope="scope">{{ scope.row[1] }}</template>
       </el-table-column>
-      <el-table-column label="户型" min-width="20%"></el-table-column>
-      <el-table-column label="总价" min-width="20%" sortable></el-table-column>
+      <el-table-column label="房号" min-width="20%" sortable :sort-method="sortByName">
+        <template slot-scope="scope">{{ scope.row[3] }}</template>
+      </el-table-column>
+      <el-table-column label="面积" min-width="20%" show-overflow-tooltip sortable :sort-method="sortByName">
+        <template slot-scope="scope">{{ scope.row[4] }}</template>
+      </el-table-column>
+      <el-table-column label="户型" min-width="20%">
+        <template slot-scope="scope">{{ scope.row[6] }}</template>
+      </el-table-column>
+      <el-table-column label="总价" min-width="20%" sortable>
+        <template slot-scope="scope">{{ scope.row[5] }}</template>
+      </el-table-column>
+
       <el-table-column label="操作" min-width="20%">
         <template slot-scope="scope">
           <a href="javascript:;" @click="deleteRecord">删除 |</a>
@@ -115,7 +124,7 @@ export default {
       newArea: '',
       newPrice: '',
       newRoomType: '',
-      roomTypeOptions: ['A型', 'B型', 'C型'],
+      roomTypeOptions: ['A型', 'B型', 'C型', 'D型', 'E型'],
       insertResult: [],
 
     }
@@ -178,7 +187,8 @@ export default {
         table: this.relationName
       }).then(response => {
         console.log(response);
-        this.addVisible=false;
+        this.addVisible = false;
+        this.record = response.data;
         return response;
       }).catch((error) => {
         console.log(error);
