@@ -6,7 +6,7 @@
         class="el-icon-search el-icon--right"></i></el-button>
     <el-button round @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
         class="el-icon-circle-close el-icon--right"></i></el-button>
-    <el-button round @click="deleteRecord" type="danger" style="margin-left: 2%;">删除选定<i
+    <el-button round @click="submitDelete" type="danger" style="margin-left: 2%;">删除选定<i
         class="el-icon-delete el-icon--right"></i></el-button>
 
     <!-- 新增记录窗口 -->
@@ -86,22 +86,14 @@
       </el-table-column>
       <el-table-column label="操作" min-width="20%">
         <template slot-scope="scope">
-          <a href="javascript:;" @click="deleteRecord">删除 |</a>
+          <a href="javascript:;" @click="deleteRecord(scope.row)">删除 | </a>
           <a href="javascript:;">修改</a>
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      align="center"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="currentPage"
-      :page-sizes="[1, 5, 10, 20]"
-      :page-size="pageSize"
-      style="margin-top: 2%;"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="record.length"
-    ></el-pagination>
+    <el-pagination align="center" @size-change="handleSizeChange" @current-change="handleCurrentChange"
+      :current-page="currentPage" :page-sizes="[1, 5, 10, 20]" :page-size="pageSize" style="margin-top: 2%;"
+      layout="total, sizes, prev, pager, next, jumper" :total="record.length"></el-pagination>
   </div>
 </template>
 <script>
@@ -130,10 +122,14 @@ export default {
       currentPage: 1,
       pageSize: 10,
 
+      deleteList: []  //删除列表
     }
   },
   created() {
     this.fetchData();
+  },
+  mounted() {
+    this.pageSize = Math.floor(window.innerWidth / 170);
   },
   methods: {
     openAdd() {
@@ -158,17 +154,65 @@ export default {
     },
     handleSelectionChange(val) {
       console.log(val);
+      this.deleteList = val
     },
-    deleteRecord() {
-      console.log('我要删除');
+    deleteRecord(row) {
+      // 处理单条删除
+      this.deleteAxios(row)
+    },
+    submitDelete() {
+      if (this.deleteList.length === 0) {
+        this.$alert('还未选择任何需要删除的数据集', '提示', {
+          confirmButtonText: '确定',
+          type: 'warning'
+        });
+      } else {
+        console.log('我要全部删除', this.deleteList)
+        var deletePromises = this.deleteList.map(item => this.deleteAxios(item));
+        // 使用 Promise.all 来等待所有删除请求完成
+        Promise.all(deletePromises)
+          .then(() => {
+            // 在所有删除操作完成后，执行更新显示的操作
+            this.deleteList = []  //清空待删除列表
+            this.fetchData(); // 假设存在一个更新显示的函数 fetchData
+          })
+          .catch(error => {
+            // 处理删除失败的情况
+          });
+      }
+    },
+    deleteAxios(row) {
+      let cond = ['sid']
+      cond.push(quote(row[11]))
+      axios.post('http://127.0.0.1:5000/delete', {
+        "table": this.relationName,
+        "where": cond
+      }).then(response => {
+        let conf = '客户' + row[7] + '买入' + row[0] + row[2] + '的销售信息已经被删除！'
+        this.$message({
+          //登陆成功
+          message: conf,
+          type: 'success'
+        });
+        this.fetchData()
+        return response;
+      }).catch((error) => {
+        let warn = '无法删除客户 ' + row[7] + '买入' + row[0] + row[2] + '的销售信息！'
+        this.$message({
+          //登陆成功
+          message: warn,
+          type: 'error'
+        });
+        return error;
+      });
     },
     submitAdd() {
       console.log('我要增加记录')
-      this.insertResult.push(quote(this.newLocate))
-      this.insertResult.push(this.newFloor)
-      this.insertResult.push(this.newArea)
-      this.insertResult.push(this.newPrice)
-      this.insertResult.push(quote(this.newRoomType))
+      // this.insertResult.push(quote(this.newLocate))
+      // this.insertResult.push(this.newFloor)
+      // this.insertResult.push(this.newArea)
+      // this.insertResult.push(this.newPrice)
+      // this.insertResult.push(quote(this.newRoomType))
       console.log(this.insertResult)
       axios.post('http://127.0.0.1:5000/insert', {
         table: this.relationName,

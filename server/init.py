@@ -15,6 +15,15 @@ if __name__ == "__main__":
     conn = pg.connect(host="localhost", port=5432, dbname="final", user="postgres", password="123456", sslmode="prefer",
                       connect_timeout=10)
     cur = conn.cursor()
+    cur.execute("""
+        drop table sell_info
+    """)
+    cur.execute("""
+            drop table custom_info
+        """)
+    cur.execute("""
+            drop table room_info
+        """)
     cur.execute("""create table  if not exists room_info(
                 rid varchar(5) primary key,
                 building varchar(2),

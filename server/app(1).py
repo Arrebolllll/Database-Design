@@ -81,6 +81,7 @@ def insert():
 """
     try:  # 事务自动回退格式
         val = request.get_json()  # val.get('(key)')得到一个字符串，用f字符串解析生成sql语句
+        print(val)
         id = generate_hash(val)
         print(val)
         insertstr = f"('{id}',"
@@ -88,6 +89,7 @@ def insert():
             insertstr += str(value) + ","
         insertstr = insertstr[:-1] + ')'  # 删逗号加括号，便于插入
         sql = f"insert into {val.get('table')} values {insertstr}"
+        print(sql)
         cur.execute(sql)
         conn.commit()
         # Return success message to the frontend
@@ -131,7 +133,7 @@ def update():
 def selectsell():
     # 新加的函数，负责传回多个id对应的列表便于展示
     try:  # 顺序按sql语句所示
-        sql = """select building,floor,room_number,area,total_price,type,remain,cname,telephone,sex,age 
+        sql = """select building,floor,room_number,area,total_price,type,remain,cname,telephone,sex,age,sid 
         from room_info 
         inner join sell_info on room_info.rid=sell_info.rid 
         inner join custom_info  on custom_info.cid=sell_info.cid
@@ -254,15 +256,17 @@ def delete():
     """
     try:  # delete from table where key1=val1
         val = request.get_json()
-
+        print(val)
         where_string = ""
         wherelist = val.get('where')
+        print(wherelist)
         for i in range(0, len(wherelist), 2):
             where_string += wherelist[i]
             i += 1
             where_string += '=' + wherelist[i]
+        print(where_string)
         sql = f"delete from {val.get('table')} where {where_string} "
-        # print(sql)
+        print(sql)
         cur.execute(sql)
         response = {"status": "success", "message": "Data successfully deleted"}
         conn.commit()

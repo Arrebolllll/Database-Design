@@ -1,3 +1,3 @@
 export const quote = (string) => {
-    return '"' + string + '"'
+    return "'" + string + "'"
 }
