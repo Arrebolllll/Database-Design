@@ -15,7 +15,7 @@
     <el-dialog title="新增楼盘信息" :visible.sync="addVisible" width="30%" :before-close="handleClose">
       <el-form label-width="17%">
         <el-form-item label="楼号" required>
-          <el-radio-group v-model="newLocate">
+          <el-radio-group v-model="locate">
             <el-radio-button label="A"></el-radio-button>
             <el-radio-button label="B"></el-radio-button>
             <el-radio-button label="C"></el-radio-button>
@@ -24,25 +24,25 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="层号" required>
-          <el-input v-model="newFloor" placeholder="请输入层号" style="width: 70%;">
+          <el-input v-model="floor" placeholder="请输入层号" style="width: 70%;">
           </el-input>
         </el-form-item>
         <el-form-item label="房号" required>
-          <el-input v-model="newRoomNum" placeholder="请输入房号" style="width: 70%;">
+          <el-input v-model="roomNum" placeholder="请输入房号" style="width: 70%;">
           </el-input>
         </el-form-item>
         <el-form-item label="面积" required>
-          <el-input v-model="newArea" placeholder="请输入面积" style="width: 70%;">
+          <el-input v-model="area" placeholder="请输入面积" style="width: 70%;">
           </el-input>
         </el-form-item>
         <el-form-item label="户型" required placeholder="请选择户型" label-position="left">
-          <el-select v-model="newRoomType" style="width: 70%;">
+          <el-select v-model="roomType" style="width: 70%;">
             <el-option v-for="item in roomTypeOptions" :key="item" :label="item" :value="item">
             </el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="总价" required>
-          <el-input v-model="newPrice" placeholder="请输入总价" style="width: 70%;">
+          <el-input v-model="price" placeholder="请输入总价" style="width: 70%;">
           </el-input>
         </el-form-item>
       </el-form>
@@ -65,6 +65,48 @@
       <span slot="footer" class="dialog-footer">
         <el-button @click="selectVisible = false">取 消</el-button>
         <el-button type="primary" @click="submitSelect">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- 新增修改窗口 -->
+    <el-dialog title="修改楼盘信息" :visible.sync="modifyVisible" width="30%" :before-close="handleClose">
+      <el-form label-width="17%">
+        <el-form-item label="楼号" required>
+          <el-radio-group v-model="locate">
+            <el-radio-button label="A"></el-radio-button>
+            <el-radio-button label="B"></el-radio-button>
+            <el-radio-button label="C"></el-radio-button>
+            <el-radio-button label="D"></el-radio-button>
+            <el-radio-button label="E"></el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="层号" required>
+          <el-input v-model="floor" placeholder="请输入层号" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="房号" required>
+          <el-input v-model="roomNum" placeholder="请输入房号" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="面积" required>
+          <el-input v-model="area" placeholder="请输入面积" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="户型" required placeholder="请选择户型" label-position="left">
+          <el-select v-model="roomType" style="width: 70%;">
+            <el-option v-for="item in roomTypeOptions" :key="item" :label="item" :value="item">
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="总价" required>
+          <el-input v-model="price" placeholder="请输入总价" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 下方按钮 -->
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="modifyVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitModify">确 定</el-button>
       </span>
     </el-dialog>
 
@@ -97,7 +139,7 @@
       <el-table-column label="操作" min-width="20%">
         <template slot-scope="scope">
           <a href="javascript:;" @click="deleteRecord(scope.row)">删除 | </a>
-          <a href="javascript:;">修改</a>
+          <a href="javascript:;" @click="modifyRecord(scope.row)">修改</a>
         </template>
       </el-table-column>
     </el-table>
@@ -115,27 +157,32 @@ export default {
     return {
       relationName: "room_info",
       record: [],//表格信息
-      addVisible: false, //新增记录弹出窗口
-      selectVisible: false, //筛选记录弹出窗口
+
       newAttr1: "",
       newAttr2: "",
       newAttr3: "",
       newAttr4: "",
       searchKey: "", //查询的关键字
 
-      newLocate: 'A',
-      newRoomNum: '',
-      newFloor: '',
-      newArea: '',
-      newPrice: '',
-      newRoomType: '',
+      rid: '',
+      locate: '',
+      roomNum: '',
+      floor: '',
+      area: '',
+      price: '',
+      roomType: '',
       roomTypeOptions: ['A', 'B', 'C', 'D', 'E'],
       insertResult: [],
 
       currentPage: 1, //默认页数
       pageSize: 10, //默认显示行数
 
-      deleteList: []  //删除列表
+      deleteList: [],  //删除列表
+
+      // 修改信息
+      modifyVisible: false, // 修改记录弹出窗口
+      addVisible: false, //新增记录弹出窗口
+      selectVisible: false, //筛选记录弹出窗口
     }
   },
   created() {
@@ -148,12 +195,12 @@ export default {
     openAdd() {
       // 打开弹窗，清空状态
       this.addVisible = true
-      this.newLocate = "A"
-      this.newFloor = ""
-      this.newRoomNum = ""
-      this.newArea = ""
-      this.newPrice = ""
-      this.newRoomType = ""
+      this.locate = "A"
+      this.floor = ""
+      this.roomNum = ""
+      this.area = ""
+      this.price = ""
+      this.roomType = ""
       this.insertResult = []
     },
     toggleSelection(rows) {
@@ -211,7 +258,7 @@ export default {
         this.fetchData()
         return response;
       }).catch((error) => {
-        let warn = '无法删除位置为 ' + row[1] + row[3] + ' 的房间，他可能已被购入!'
+        let warn = '无法删除位置为 ' + row[1] + row[3] + ' 的房间，他已被购入!'
         this.$message({
           //登陆成功
           message: warn,
@@ -223,12 +270,12 @@ export default {
     submitAdd() {
       console.log('我要增加记录')
       this.insertResult = []
-      this.insertResult.push(quote(this.newLocate.toLowerCase()))
-      this.insertResult.push(this.newFloor)
-      this.insertResult.push(quote(this.newRoomNum))
-      this.insertResult.push(this.newArea)
-      this.insertResult.push(this.newPrice)
-      this.insertResult.push(quote(this.newRoomType))
+      this.insertResult.push(quote(this.locate.toLowerCase()))
+      this.insertResult.push(this.floor)
+      this.insertResult.push(quote(this.roomNum))
+      this.insertResult.push(this.area)
+      this.insertResult.push(this.price)
+      this.insertResult.push(quote(this.roomType))
       console.log(this.insertResult)
       axios.post('http://127.0.0.1:5000/insert', {
         table: this.relationName,
@@ -245,6 +292,49 @@ export default {
       }).catch((error) => {
         this.$message({
           message: '插入失败',
+          type: 'error'
+        });
+        return error;
+      });
+    },
+    modifyRecord(row) {
+      console.log(row)
+      this.modifyVisible = true
+      this.rid = row[0]
+      this.locate = row[1].toUpperCase()
+      this.floor = row[2]
+      this.roomNum = row[3]
+      this.area = row[4]
+      this.price = row[5]
+      this.roomType = row[6]
+    },
+    submitModify() {
+      let setArr = []
+      setArr.push('rid', quote(this.rid))
+      setArr.push('building', quote(this.locate))
+      setArr.push('floor', this.floor)
+      setArr.push('room_number', this.roomNum)
+      setArr.push('area', this.area)
+      setArr.push('total_price', this.price)
+      setArr.push('type', quote(this.roomType))
+      console.log(setArr)
+      let where = ['rid', quote(this.rid)]
+      axios.post('http://127.0.0.1:5000/update', {
+        table: this.relationName,
+        set: setArr,
+        where: where
+      }).then(response => {
+        console.log(response);
+        this.addVisible = false
+        this.fetchData()
+        this.$message({
+          message: '修改成功',
+          type: 'success'
+        });
+        return response;
+      }).catch((error) => {
+        this.$message({
+          message: '修改失败',
           type: 'error'
         });
         return error;

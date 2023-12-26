@@ -15,19 +15,19 @@
     <el-dialog title="新增客户" :visible.sync="addVisible" width="30%" :before-close="handleClose">
       <el-form label-width="17%">
         <el-form-item label="姓名" required>
-          <el-input v-model="newName" placeholder="请输入姓名" style="width: 70%;">
+          <el-input v-model="name" placeholder="请输入姓名" style="width: 70%;">
           </el-input>
         </el-form-item>
         <el-form-item label="性别" required>
-          <el-radio label="男" v-model="newGender" border></el-radio>
-          <el-radio label="女" v-model="newGender" border></el-radio>
+          <el-radio label="男" v-model="gender" border></el-radio>
+          <el-radio label="女" v-model="gender" border></el-radio>
         </el-form-item>
         <el-form-item label="年龄" required>
-          <el-input v-model="newAge" placeholder="请输入年龄" style="width: 70%;">
+          <el-input v-model="age" placeholder="请输入年龄" style="width: 70%;">
           </el-input>
         </el-form-item>
         <el-form-item label="联系方式" required label-position="left">
-          <el-input v-model="newContact" placeholder="请输入联系方式" style="width: 70%;">
+          <el-input v-model="contact" placeholder="请输入联系方式" style="width: 70%;">
           </el-input>
         </el-form-item>
       </el-form>
@@ -102,10 +102,10 @@ export default {
       newAttr4: "",
       searchKey: "", //查询的关键字
 
-      newName: '',
-      newGender: '',
-      newAge: '',
-      newContact: '',
+      name: '',
+      gender: '',
+      age: '',
+      contact: '',
       insertResult: [],
 
       currentPage: 1, //默认页数
@@ -124,10 +124,10 @@ export default {
     openAdd() {
       // 打开弹窗，清空状态
       this.addVisible = true
-      this.newName = ""
-      this.newGender = ""
-      this.newAge = ""
-      this.newContact = ""
+      this.name = ""
+      this.gender = ""
+      this.age = ""
+      this.contact = ""
       this.insertResult = []
     },
     toggleSelection(rows) {
@@ -201,10 +201,10 @@ export default {
     submitAdd() {
       console.log('我要增加记录')
       this.insertResult = []
-      this.insertResult.push(quote(this.newName))
-      this.insertResult.push(quote(this.newContact))
-      this.insertResult.push(quote(this.newGender === '女' ? 'female' : 'male'))
-      this.insertResult.push(this.newAge)
+      this.insertResult.push(quote(this.name))
+      this.insertResult.push(quote(this.contact))
+      this.insertResult.push(quote(this.gender === '女' ? 'female' : 'male'))
+      this.insertResult.push(this.age)
       console.log(this.insertResult)
       axios.post('http://127.0.0.1:5000/insert', {
         table: this.relationName,

@@ -133,6 +133,7 @@ def update():
     try:
         val = request.get_json()  # update students set grade='2001' where sid='21307283'
         sql = f"update {val.get('table')} set {val.get('set')[0]}={val.get('set')[1]} where {val.get('where')[0]}={val.get('where')[1]}"
+        print(sql)
         cur.execute(sql)
         conn.commit()
         response = {"status": "success", "message": "Data successfully updated"}
@@ -173,12 +174,9 @@ def selectstar():
     # 传回某个表的全部列
     try:  # select key1,key2* from table
         val = request.get_json()
-        print(val)
         sql = f"select * from {val.get('table')} "
-        print(sql)
         cur.execute(sql)
         data = cur.fetchall()
-        print(data)
         conn.commit()
         return json.dumps(data)
     except Exception as e:
@@ -273,17 +271,17 @@ def delete():
     """
     try:  # delete from table where key1=val1
         val = request.get_json()
-        print(val)
+
         where_string = ""
         wherelist = val.get('where')
-        print(wherelist)
+
         for i in range(0, len(wherelist), 2):
             where_string += wherelist[i]
             i += 1
             where_string += '=' + wherelist[i]
-        print(where_string)
+
         sql = f"delete from {val.get('table')} where {where_string} "
-        print(sql)
+
         cur.execute(sql)
         response = {"status": "success", "message": "Data successfully deleted"}
         conn.commit()

@@ -16,7 +16,7 @@
       <el-form label-width="17%">
         <h2 style="margin-bottom: 5%;">购入房间信息</h2>
         <el-form-item label="楼栋" required>
-          <el-radio-group v-model="newLocate">
+          <el-radio-group v-model="locate">
             <el-radio-button label="A"></el-radio-button>
             <el-radio-button label="B"></el-radio-button>
             <el-radio-button label="C"></el-radio-button>
@@ -25,22 +25,22 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="房间号" required>
-          <el-input v-model="newRoomNum" placeholder="请输入房间号" style="width: 70%;">
+          <el-input v-model="roomNum" placeholder="请输入房间号" style="width: 70%;">
           </el-input>
         </el-form-item>
         <el-form-item label="户型" required placeholder="请选择户型" label-position="left">
-          <el-select v-model="newRoomType" style="width: 70%;">
+          <el-select v-model="roomType" style="width: 70%;">
             <el-option v-for="item in roomTypeOptions" :key="item" :label="item" :value="item">
             </el-option>
           </el-select>
         </el-form-item>
         <h2 style="margin-bottom: 5%;">购买人信息</h2>
         <el-form-item label="姓名" required label-position="left">
-          <el-input v-model="newName" placeholder="请输入买家姓名" style="width: 70%;">
+          <el-input v-model="name" placeholder="请输入买家姓名" style="width: 70%;">
           </el-input>
         </el-form-item>
         <el-form-item label="联系方式" required>
-          <el-input v-model="newContact" placeholder="请输入联系方式" style="width: 70%;">
+          <el-input v-model="contact" placeholder="请输入联系方式" style="width: 70%;">
           </el-input>
         </el-form-item>
       </el-form>
@@ -116,11 +116,11 @@ export default {
       newAttr3: "",
       newAttr4: "",
 
-      newLocate: 'A',
-      newRoomNum: '',
-      newRoomType: '',
-      newName: '',
-      newContact: '',
+      locate: 'A',
+      roomNum: '',
+      roomType: '',
+      name: '',
+      contact: '',
       roomTypeOptions: ['A', 'B', 'C', 'D', 'E'],
       insertResult: [],
 
@@ -140,11 +140,11 @@ export default {
     openAdd() {
       // 打开弹窗，清空状态
       this.addVisible = true
-      this.newLocate = "A"
+      this.locate = "A"
       this.newFloor = ""
       this.newArea = ""
       this.newPrice = ""
-      this.newRoomType = ""
+      this.roomType = ""
       this.insertResult = []
     },
     toggleSelection(rows) {
@@ -213,11 +213,11 @@ export default {
     },
     submitAdd() {
       console.log('我要增加记录')
-      this.insertResult.push(quote(this.newLocate))
+      this.insertResult.push(quote(this.locate))
       this.insertResult.push(this.newFloor)
-      this.insertResult.push(quote(this.newRoomType))
-      this.insertResult.push(quote(this.newName))
-      this.insertResult.push(quote(this.newContact))
+      this.insertResult.push(quote(this.roomType))
+      this.insertResult.push(quote(this.name))
+      this.insertResult.push(quote(this.contact))
       console.log(this.insertResult)
       axios.post('http://127.0.0.1:5000/insert', {
         table: this.relationName,
