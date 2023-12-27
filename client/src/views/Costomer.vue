@@ -52,6 +52,33 @@
         <el-button type="primary" @click="submitSelect">确 定</el-button>
       </span>
     </el-dialog>
+    <!--  修改记录弹出窗口  -->
+    <el-dialog title="修改客户信息" :visible.sync="modifyVisible" width="30%" :before-close="handleClose">
+      <el-form label-width="17%">
+        <el-form-item label="客户名" required>
+          <el-input v-model="name"></el-input>
+        </el-form-item>
+        <el-form-item label="性别" required>
+          <el-radio-group v-model="gender">
+            <el-radio-button label="男"></el-radio-button>
+            <el-radio-button label="女"></el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="年龄" required>
+          <el-input v-model="age" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="联系方式" required>
+          <el-input v-model="contact" style="width: 70%;">
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <!-- 下方按钮 -->
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="modifyVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submitModify">确 定</el-button>
+      </span>
+    </el-dialog>
 
     <el-table ref="multipleTable" stripe :data="record.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
       tooltip-effect="dark" style="width: 100%;margin-top: 2%;" @selection-change="handleSelectionChange">
@@ -76,7 +103,7 @@
       <el-table-column label="操作" min-width="20%">
         <template slot-scope="scope">
           <a href="javascript:;" @click="deleteRecord(scope.row)">删除 | </a>
-          <a href="javascript:;">修改</a>
+          <a href="javascript:;" @click="modifyRecord(scope.row)">修改</a>
         </template>
       </el-table-column>
     </el-table>
@@ -96,12 +123,14 @@ export default {
       record: [],//表格信息
       addVisible: false, //新增记录弹出窗口
       selectVisible: false, //筛选记录弹出窗口
+      modifyVisible: false,//修改记录弹出窗口
       newAttr1: "",
       newAttr2: "",
       newAttr3: "",
       newAttr4: "",
       searchKey: "", //查询的关键字
 
+      cid: '',
       name: '',
       gender: '',
       age: '',
@@ -229,6 +258,43 @@ export default {
     },
     submitSelect() {
       console.log('我要筛选出记录')
+    },
+    modifyRecord(row) {
+      console.log(row)
+      this.modifyVisible = true
+      this.cid = row[0]
+      this.name = row[1]
+      this.contact = row[2]
+      this.gender = row[3] == 'female' ? '女' : '男'
+      this.age = row[4]
+    },
+    submitModify() {
+      console.log('发送请求')
+      let setArr = ['cname', quote(this.name)]
+      setArr.push('telephone', quote(this.contact))
+      setArr.push('sex', quote(this.gender == '男' ? 'male' : 'female'))
+      setArr.push('age', this.age)
+      let where = ['cid', quote(this.cid)]
+      axios.post('http://127.0.0.1:5000/update', {
+        table: this.relationName,
+        set: setArr,
+        where: where
+      }).then(response => {
+        console.log(response);
+        this.modifyVisible = false
+        this.fetchData()
+        this.$message({
+          message: '修改成功',
+          type: 'success'
+        });
+        return response;
+      }).catch((error) => {
+        this.$message({
+          message: '修改失败',
+          type: 'error'
+        });
+        return error;
+      });
     },
     fetchData() {
       console.log('我要一进来就获取数据')
