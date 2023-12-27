@@ -1,16 +1,20 @@
 <template>
   <div class="file-manager">
-    <!-- 顶部按钮 -->
-    <el-button type="primary" @click="openAdd" round>新增客户<i class="el-icon-plus el-icon--right"></i></el-button>
-    <el-button round type="warning" @click="selectVisible = true" style="margin-left: 2%;">筛选客户<i
-        class="el-icon-search el-icon--right"></i></el-button>
-    <el-button round type="info" @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
-        class="el-icon-circle-close el-icon--right"></i></el-button>
-    <el-button round @click="submitDelete" type="danger" style="margin-left: 2%;">删除选定<i
-        class="el-icon-delete el-icon--right"></i></el-button>
-    <el-button round @click="fetchData" type="success" style="margin-left: 2%;">刷新列表<i
-        class="el-icon-refresh el-icon--right"></i></el-button>
-
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <!-- 顶部按钮 -->
+      <el-button type="primary" @click="openAdd" round>新增客户<i class="el-icon-plus el-icon--right"></i></el-button>
+      <el-button round type="warning" @click="selectVisible = true" style="margin-left: 2%;">筛选客户<i
+          class="el-icon-search el-icon--right"></i></el-button>
+      <el-button round type="info" @click="toggleSelection()" style="margin-left: 2%;">取消选择<i
+          class="el-icon-circle-close el-icon--right"></i></el-button>
+      <el-button round @click="submitDelete" type="danger" style="margin-left: 2%;">删除选定<i
+          class="el-icon-delete el-icon--right"></i></el-button>
+      <el-button round @click="fetchData" type="success" style="margin-left: 2%;">刷新列表<i
+          class="el-icon-refresh el-icon--right"></i></el-button>
+      <!-- 顶部搜索栏 -->
+      <h2 style="margin-left: 5%;">键入客户名字进行快速筛选：</h2>
+      <el-input v-model="searchKey" size="medium" placeholder="输入客户名字搜索" style="width: 10%" />
+    </div>
     <!-- 新增记录窗口 -->
     <el-dialog title="新增客户" :visible.sync="addVisible" width="30%" :before-close="handleClose">
       <el-form label-width="17%">
@@ -37,19 +41,21 @@
         <el-button type="primary" @click="submitAdd">确 定</el-button>
       </span>
     </el-dialog>
-
     <!-- 筛选记录弹出窗口 -->
     <el-dialog title="筛选" :visible.sync="selectVisible" width="30%" :before-close="handleClose">
       <el-form>
-        <el-form-item label="新增属性一" required><el-input v-model="newAttr1" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性二" required><el-input v-model="newAttr2" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性三" required><el-input v-model="newAttr3" placeholder=""></el-input></el-form-item>
-        <el-form-item label="新增属性四" required><el-input v-model="newAttr4" placeholder=""></el-input></el-form-item>
+        <h3 style="margin-bottom: 3%;">筛选年龄区间</h3>
+        <el-form-item label="年龄">
+          <div class="block" style="margin-left: 8%;">
+            <el-slider v-model="ageRange" range>
+            </el-slider>
+          </div>
+        </el-form-item>
       </el-form>
       <!-- 下方按钮 -->
       <span slot="footer" class="dialog-footer">
         <el-button @click="selectVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitSelect">确 定</el-button>
+        <el-button type="primary" @click="submitSelect">筛 选</el-button>
       </span>
     </el-dialog>
     <!--  修改记录弹出窗口  -->
@@ -80,8 +86,8 @@
       </span>
     </el-dialog>
 
-    <el-table ref="multipleTable" stripe :data="record.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
-      tooltip-effect="dark" style="width: 100%;margin-top: 2%;" @selection-change="handleSelectionChange">
+    <el-table ref="multipleTable" stripe :data="filteredData" tooltip-effect="dark" style="width: 100%;margin-top: 2%;"
+      @selection-change="handleSelectionChange">
       <!-- 选择框和index -->
       <el-table-column type="selection" width="100%"></el-table-column>
       <el-table-column type="index" min-width="20%"></el-table-column>
@@ -90,7 +96,8 @@
       <el-table-column label="客户名字" min-width="20%" sortable>
         <template slot-scope="scope">{{ scope.row[1] }}</template>
       </el-table-column>
-      <el-table-column label="性别" min-width="20%">
+      <el-table-column label="性别" min-width="20%"
+        :filters="[{ text: '男', value: 'male' }, { text: '女', value: 'female' }]" :filter-method="filterTag">
         <template slot-scope="scope">{{ scope.row[3] === 'female' ? '女' : '男' }}</template>
       </el-table-column>
 
@@ -134,6 +141,7 @@ export default {
       name: '',
       gender: '',
       age: '',
+      ageRange: '',
       contact: '',
       insertResult: [],
 
@@ -148,6 +156,17 @@ export default {
   },
   mounted() {
     this.pageSize = Math.floor(window.innerWidth / 170);
+  },
+  computed: {
+    filteredData() {
+      if (!this.searchKey) {
+        return this.record.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+      }
+      else {
+        const filteredBySearchKey = this.record.filter(item => item[1].toLowerCase().includes(this.searchKey.toLowerCase()));
+        return filteredBySearchKey.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize)
+      }
+    }
   },
   methods: {
     openAdd() {
@@ -171,9 +190,6 @@ export default {
     },
     handleSelectionChange(val) {
       console.log(val);
-    },
-    deleteRecord() {
-      console.log('我要删除');
     },
     handleSelectionChange(val) {
       console.log(val);
@@ -257,7 +273,19 @@ export default {
       });
     },
     submitSelect() {
-      console.log('我要筛选出记录')
+      axios.post('http://127.0.0.1:5000/selectrange', {
+        table: this.relationName,
+        select: "*",
+        where: ["age", this.ageRange[0], this.ageRange[1]]
+      }).then(response => {
+        console.log('筛选结果：', response)
+        this.selectVisible = false
+        this.record = response.data
+        return response;
+      }).catch((error) => {
+        console.log(error);
+        return error;
+      });
     },
     modifyRecord(row) {
       console.log(row)
@@ -334,6 +362,9 @@ export default {
     handleCurrentChange(val) {
       console.log(`当前页: ${val}`);
       this.currentPage = val;
+    },
+    filterTag(value, row, column) {
+      return row[3] === value;
     }
   }
 };

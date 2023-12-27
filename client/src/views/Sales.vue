@@ -7,8 +7,10 @@
       <el-button round @click="submitDelete" type="danger">删除选定<i class="el-icon-delete el-icon--right"></i></el-button>
       <el-button round @click="fetchData" type="success">刷新列表<i class="el-icon-refresh el-icon--right"></i></el-button>
       <el-button round @click="overallShow">查看总体销售情况</el-button>
-      <el-input v-model="searchKey1" size="mini" placeholder="输入客户名字搜索" />
-      <el-input v-model="searchKey2" size="mini" placeholder="输入楼号搜索" />
+      <h2 style="margin-left: 5%;">键入客户名字筛选：</h2>
+      <el-input v-model="searchKey1" size="medium" placeholder="name" style="width:8%;" />
+      <h2 style="margin-left: 2%;">键入楼号进行筛选：</h2>
+      <el-input v-model="searchKey2" size="medium" placeholder="location" style="width:5%;" />
     </div>
     <!-- 新增记录窗口 -->
     <el-dialog title="新增楼盘信息" :visible.sync="addVisible" width="30%" :before-close="handleClose">
@@ -244,7 +246,7 @@ export default {
       this.insertResult.push(quote(this.roomType))
       this.insertResult.push(quote(this.name))
       this.insertResult.push(quote(this.contact))
-      this.insertResult.push()
+      this.insertResult.push(this.remain)
       console.log(this.insertResult)
       axios.post('http://127.0.0.1:5000/insertsell', {
         roomnumber: this.roomNum,
@@ -317,8 +319,8 @@ export default {
         this.renderCharts();
       }, 1000)
     },
-    getOverall(){
-      axios.post('',{
+    getOverall() {
+      axios.post('', {
 
       })
     },
@@ -355,10 +357,10 @@ export default {
           }
         ]
       }
-    const pieChart = echarts.init(this.$refs.pie);
-    pieChart.setOption(optionPie);
-  },
-}
+      const pieChart = echarts.init(this.$refs.pie);
+      pieChart.setOption(optionPie);
+    },
+  }
 };
 </script>
 <style scoped lang="less">
