@@ -102,8 +102,8 @@
       </el-table-column>
       <el-table-column label="操作" min-width="20%">
         <template slot-scope="scope">
-          <a href="javascript:;" @click="deleteRecord(scope.row)">删除 | </a>
-          <a href="javascript:;" @click="modifyRecord(scope.row)">修改</a>
+          <el-button @click="modifyRecord(scope.row)" size="mini">Edit</el-button>
+          <el-button @click="deleteRecord(scope.row)" size="mini" type="danger">Delete</el-button>
         </template>
       </el-table-column>
     </el-table>
