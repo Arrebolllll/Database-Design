@@ -6,7 +6,7 @@
           class="el-icon-circle-close el-icon--right"></i></el-button>
       <el-button round @click="submitDelete" type="danger">删除选定<i class="el-icon-delete el-icon--right"></i></el-button>
       <el-button round @click="fetchData" type="success">刷新列表<i class="el-icon-refresh el-icon--right"></i></el-button>
-      <el-button round @click="overall">查看总体销售情况</el-button>
+      <el-button round @click="overallShow">查看总体销售情况</el-button>
       <el-input v-model="searchKey1" size="mini" placeholder="输入客户名字搜索" />
       <el-input v-model="searchKey2" size="mini" placeholder="输入楼号搜索" />
     </div>
@@ -55,6 +55,11 @@
       </span>
     </el-dialog>
 
+    <!-- 总览窗口 -->
+    <el-dialog title="销售信息总览" :visible.sync="overallVisible" width="30%">
+      <div ref="bar" class="myBarchart" style="height: 300px;"></div>
+      <div ref="pie" class="myPie" style="height: 300px;"></div>
+    </el-dialog>
     <el-table ref="multipleTable" stripe :data="filteredData" tooltip-effect="dark" style="width: 100%;margin-top: 2%;"
       @selection-change="handleSelectionChange">
       <!-- 选择框和index -->
@@ -91,14 +96,14 @@
 <script>
 import axios from 'axios'
 import { quote } from '../utils/quoteString'
-import Cookies from 'js-cookie'
+import * as echarts from 'echarts'
 export default {
   data() {
     return {
       relationName: "sell_info",
       record: [],//关系元组信息
       addVisible: false, //新增记录弹出窗口
-
+      overallVisible: false,
       searchKey1: '', //处理sell_info的后续查询
       searchKey2: '',
 
@@ -116,16 +121,16 @@ export default {
 
       deleteList: [],  //删除列表
       overall: {
-        total: '',
-        male: '',
-        female: '',
+        total: 200,
+        male: 140,
+        female: 60,
         maxRemain: '',
         minRemain: '',
-        A: 'None',
-        B: 'None',
-        C: 'None',
-        D: 'None',
-        E: 'None'
+        A: null,
+        B: null,
+        C: null,
+        D: null,
+        E: null
       }
     }
   },
@@ -306,10 +311,54 @@ export default {
       console.log(`当前页: ${val}`);
       this.currentPage = val;
     },
-    overall() {
-      axios
-    }
-  }
+    overallShow() {
+      this.overallVisible = true
+      setTimeout(() => {
+        this.renderCharts();
+      }, 1000)
+    },
+    getOverall(){
+      axios.post('',{
+
+      })
+    },
+    renderCharts() {
+      // 使用 ECharts 渲染柱状图
+      const optionBar = {
+        xAxis: {
+          data: ['总人数', '男性', '女性']
+        },
+        yAxis: {},
+        series: [
+          {
+            type: "bar", //形状为柱状图
+            data: [this.overall.total, this.overall.male, this.overall.female]
+          }
+        ]
+      };
+      const barChart = echarts.init(this.$refs.bar);
+      barChart.setOption(optionBar);
+
+      const optionPie = {
+        series: [
+          {
+            name: '住户分析',
+            type: 'pie',    // 设置图表类型为饼图
+            radius: '55%',  // 饼图的半径，外半径为可视区尺寸（容器高宽中较小一项）的 55% 长度。
+            data: [          // 数据数组，name 为数据项名称，value 为数据项值
+              { value: 235, name: 'A栋' },
+              { value: 274, name: 'B栋' },
+              { value: 310, name: 'C栋' },
+              { value: 335, name: 'D栋' },
+              { value: 400, name: 'E栋' }
+            ]
+          }
+        ]
+      }
+    const pieChart = echarts.init(this.$refs.pie);
+    pieChart.setOption(optionPie);
+  },
+}
 };
 </script>
 <style scoped lang="less">
