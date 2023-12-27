@@ -123,11 +123,9 @@ export default {
 
       deleteList: [],  //删除列表
       overall: {
-        total: 200,
-        male: 140,
-        female: 60,
-        maxRemain: '',
-        minRemain: '',
+        total: 1,
+        male: 1,
+        female: 1,
         A: null,
         B: null,
         C: null,
@@ -315,18 +313,22 @@ export default {
     },
     overallShow() {
       this.overallVisible = true
+      this.overall.total = this.record.length
+      this.overall.male = this.record.filter(item => item[9] === 'male').length
+      this.overall.female = this.record.filter(item => item[9] === 'female').length
+      this.overall.A = this.record.filter(item => item[5] == 'A').length
+      this.overall.B = this.record.filter(item => item[5] == 'B').length
+      this.overall.C = this.record.filter(item => item[5] == 'C').length
+      this.overall.D = this.record.filter(item => item[5] == 'D').length
+      this.overall.E = this.record.filter(item => item[5] == 'E').length
+      console.log(this.overall)
       setTimeout(() => {
         this.renderCharts();
       }, 1000)
     },
-    getOverall() {
-      axios.post('', {
-
-      })
-    },
     renderCharts() {
       // 使用 ECharts 渲染柱状图
-      const optionBar = {
+      let optionBar = {
         xAxis: {
           data: ['总人数', '男性', '女性']
         },
@@ -334,25 +336,40 @@ export default {
         series: [
           {
             type: "bar", //形状为柱状图
-            data: [this.overall.total, this.overall.male, this.overall.female]
+            data: [{
+              value: this.overall.total,
+              itemStyle: {
+                color: '#FFA500'
+              },
+            }, {
+              value: this.overall.male,
+              itemStyle: {
+                color: '#87CEFA'
+              },
+            }, {
+              value: this.overall.female,
+              itemStyle: {
+                color: '#F08080'
+              },
+            }]
           }
         ]
       };
       const barChart = echarts.init(this.$refs.bar);
       barChart.setOption(optionBar);
 
-      const optionPie = {
+      let optionPie = {
         series: [
           {
             name: '住户分析',
             type: 'pie',    // 设置图表类型为饼图
             radius: '55%',  // 饼图的半径，外半径为可视区尺寸（容器高宽中较小一项）的 55% 长度。
             data: [          // 数据数组，name 为数据项名称，value 为数据项值
-              { value: 235, name: 'A栋' },
-              { value: 274, name: 'B栋' },
-              { value: 310, name: 'C栋' },
-              { value: 335, name: 'D栋' },
-              { value: 400, name: 'E栋' }
+              { value: this.overall.A, name: 'A栋' },
+              { value: this.overall.B, name: 'B栋' },
+              { value: this.overall.C, name: 'C栋' },
+              { value: this.overall.D, name: 'D栋' },
+              { value: this.overall.E, name: 'E栋' }
             ]
           }
         ]
