@@ -11,7 +11,7 @@ Vue.use(VueRouter)
 */
 import Main from '../views/Main.vue'
 import Property from '../views/Property.vue'
-import Login from '../views/Login.vue'
+
 import Sales from '../views/Sales.vue'
 import Test from '../views/Test.vue'
 import Costomer from '../views/Costomer.vue'
@@ -29,7 +29,7 @@ const routes = [
         redirect: '/property',  //重定向
         children: [
             // 子路由
-            { path: 'login', name: 'Login', component: Login },//登录页
+            
             { path: 'property', name: 'property', component: Property },  // 楼盘信息管理
             { path: 'sales', name: 'sales', component: Sales },    //销售管理
             { path: 'customer', name: 'customer', component: Costomer }, //客户管理

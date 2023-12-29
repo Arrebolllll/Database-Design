@@ -36,27 +36,29 @@ def insertsell():
     sid=generate_hash(cid+rid)
     """
     """
-测试样例，此处无需套单引号，在转为sql里已有
+    测试样例，此处除了remain是int型其他都需套单引号，在转为sql里已有
     {
-    "roomnumber":"143",
-    "building":"a",
-    "type":"B",
-    "telephone":"707322",
-    "cname":"bkg",
+    "roomnumber":"'143'",
+    "building":"'a'",
+    "type":"'B'",
+    "telephone":"'707322'",
+    "cname":"'bkg'",
     "remain":"12"
     }
-"""
-    try:  # 事务自动回退格式
+    """
+    try:
+        # 事务自动回退格式
         val = request.get_json()  # val.get('(key)')得到一个字符串，用f字符串解析生成sql语句
         # print(val)
         ridhash = str(val.get("roomnumber")) + str(val.get("building")) + str(val.get("type"))
+        print(ridhash)
         rid = generate_hash(ridhash)
         cidhash = str(val.get("telephone")) + val.get("cname")
-        print(ridhash)
         print(cidhash)
         cid = generate_hash(cidhash)
         sid = generate_hash(rid + cid)
         sql = f"insert into sell_info values ('{sid}','{cid}','{rid}',{val.get('remain')})"
+        print(sql)
         cur.execute(sql)
         conn.commit()
         # Return success message to the frontend
@@ -64,7 +66,7 @@ def insertsell():
         return json.dumps(response)
     except Exception as e:
         print(f"Error: {e}")
-        conn.rollback()
+        # conn.rollback()
 
         # Return error message to the frontend
         response = {"status": "error", "message": f"Error: {e}"}
@@ -92,7 +94,7 @@ def insert():
         elif val.get('table') == "room_info":
             hash_object = str(val.get('values')[2]) + str(val.get('values')[0]) + str(
                 val.get('values')[-1])  # hash_object = roomnumber + building + type
-
+        print(hash_object)
         # 使用哈希对象生成ID
         id = generate_hash(hash_object)
 

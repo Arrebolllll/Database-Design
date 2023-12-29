@@ -239,19 +239,12 @@ export default {
     submitAdd() {
       console.log('我要增加记录')
       this.addVisible = false
-      this.insertResult.push(quote(this.locate))
-      this.insertResult.push(this.newFloor)
-      this.insertResult.push(quote(this.roomType))
-      this.insertResult.push(quote(this.name))
-      this.insertResult.push(quote(this.contact))
-      this.insertResult.push(this.remain)
-      console.log(this.insertResult)
       axios.post('http://127.0.0.1:5000/insertsell', {
-        roomnumber: this.roomNum,
-        building: this.locate,
-        type: this.roomType,
-        telephone: this.contact,
-        cname: this.name,
+        roomnumber: quote(this.roomNum),
+        building: quote(this.locate.toLocaleLowerCase()),
+        type: quote(this.roomType),
+        telephone: quote(this.contact),
+        cname: quote(this.name),
         remain: this.remain
       }).then(response => {
         console.log(response);
@@ -260,6 +253,7 @@ export default {
           message: '销售记录插入成功',
           type: 'success'
         });
+        this.fetchData()
         return response;
       }).catch((error) => {
         this.$message({
